@@ -1,0 +1,47 @@
+name: OSS Contribution Agent (Every 4 Days)
+
+on:
+  schedule:
+    # Runs at 09:00 UTC every 4 days
+    - cron: '0 9 */4 * *'
+  workflow_dispatch: # Allows manual trigger from GitHub UI for testing
+
+jobs:
+  run-agent:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # Needed to fork and push branch to user's fork
+
+    steps:
+      - name: Checkout agent repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Configure Git
+        run: |
+          git config --global user.name "${{ secrets.GH_USERNAME }}"
+          git config --global user.email "${{ secrets.NOTIFICATION_EMAIL_TO }}"
+
+      - name: Run Contribution Finder & Solver
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
+          GH_USERNAME: ${{ secrets.GH_USERNAME }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASS: ${{ secrets.SMTP_PASS }}
+          NOTIFICATION_EMAIL_TO: ${{ secrets.NOTIFICATION_EMAIL_TO }}
+          SEARCH_LANGUAGE: "python"
+        run: |
+          python main.py
