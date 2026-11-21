@@ -54,14 +54,34 @@ Respond strictly in JSON format matching this schema:
 """
 
     print("[Solver] Requesting patch plan from Gemini API...")
-    # First turn: ask Gemini to pick candidate files or generate patch
-    response = client.models.generate_content(
-        model="gemini-2.0-flash",
-        contents=prompt,
-        config=types.GenerateContentConfig(
-            response_mime_type="application/json"
-        )
-    )
+    candidate_models = [
+        "gemini-2.5-flash",
+        "gemini-2.0-flash",
+        "gemini-1.5-flash",
+        "gemini-1.5-flash-latest",
+        "gemini-1.5-pro"
+    ]
+
+    response = None
+    last_err = None
+    for model_name in candidate_models:
+        try:
+            print(f"[Solver] Trying model: {model_name}...")
+            response = client.models.generate_content(
+                model=model_name,
+                contents=prompt,
+                config=types.GenerateContentConfig(
+                    response_mime_type="application/json"
+                )
+            )
+            print(f"[Solver] Successfully generated plan with model: {model_name}")
+            break
+        except Exception as e:
+            print(f"[Solver] Model {model_name} failed: {e}")
+            last_err = e
+
+    if not response:
+        raise RuntimeError(f"All candidate Gemini models failed. Last error: {last_err}")
 
     try:
         result = json.loads(response.text)
