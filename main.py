@@ -102,11 +102,12 @@ def main():
                 return
 
             # 7. Collect Diff & Summary
+            base_branch = repo.default_branch or "main"
             _, diff_out = run_command(["git", "diff", "HEAD~1", "HEAD"], cwd=temp_dir)
             diff_snippet = diff_out[:3500] + ("\n... [truncated]" if len(diff_out) > 3500 else "")
 
             fork_branch_url = f"https://github.com/{user.login}/{repo.name}/tree/{branch_name}"
-            compare_pr_url = f"https://github.com/{repo.full_name}/compare/main...{user.login}:{repo.name}:{branch_name}?expand=1"
+            compare_pr_url = f"https://github.com/{repo.full_name}/compare/{base_branch}...{user.login}:{branch_name}?expand=1"
 
             # 8. Notify via Email for Human Approval
             print("\n=== Step 8: Sending Email Notification ===")
