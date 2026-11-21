@@ -56,7 +56,7 @@ Respond strictly in JSON format matching this schema:
     print("[Solver] Requesting patch plan from Gemini API...")
     # First turn: ask Gemini to pick candidate files or generate patch
     response = client.models.generate_content(
-        model="gemini-2.5-flash",
+        model="gemini-2.0-flash",
         contents=prompt,
         config=types.GenerateContentConfig(
             response_mime_type="application/json"
