@@ -80,10 +80,14 @@ def main():
                 print("No files modified by solver. Aborting.")
                 return
 
-            # 5. Optional Sandbox Test Execution (e.g. pytest)
+            # 5. Optional Sandbox Test Execution (e.g. pytest if installed)
             print("\n=== Step 6: Testing Patch ===")
-            test_code, test_out = run_command(["pytest", "-q"], cwd=temp_dir)
-            print(f"Pytest result (exit {test_code}):\n{test_out[:500]}")
+            import shutil
+            if shutil.which("pytest"):
+                test_code, test_out = run_command(["pytest", "-q"], cwd=temp_dir)
+                print(f"Pytest result (exit {test_code}):\n{test_out[:500]}")
+            else:
+                print("Pytest not installed in runner environment. Skipping local test run.")
 
             # 6. Commit and Push to Fork
             print("\n=== Step 7: Committing & Pushing Branch ===")
