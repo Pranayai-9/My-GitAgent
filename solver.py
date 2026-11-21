@@ -54,13 +54,36 @@ Respond strictly in JSON format matching this schema:
 """
 
     print("[Solver] Requesting patch plan from Gemini API...")
-    candidate_models = [
-        "gemini-2.5-flash",
-        "gemini-2.0-flash",
-        "gemini-1.5-flash",
-        "gemini-1.5-flash-latest",
-        "gemini-1.5-pro"
-    ]
+    
+    # 1. Dynamically query available models supporting generateContent on this API key
+    available_models = []
+    try:
+        print("[Solver] Listing available models from Gemini API...")
+        for m in client.models.list():
+            name = m.name or ""
+            # Strip 'models/' prefix if present for clean comparison
+            clean_name = name.removeprefix("models/")
+            # Check if generateContent or similar is supported
+            actions = getattr(m, "supported_actions", []) or getattr(m, "supported_generation_methods", []) or []
+            if not actions or any("generateContent" in str(act) for act in actions):
+                available_models.append(clean_name)
+        print(f"[Solver] Available models on this key: {available_models[:10]}")
+    except Exception as e:
+        print(f"[Solver] Could not list models dynamically: {e}")
+
+    # Prioritize preferred models if they are in the available list
+    preferred = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash", "gemini-1.5-pro"]
+    candidate_models = [m for m in preferred if m in available_models]
+    # Add any remaining available flash/pro models
+    for m in available_models:
+        if m not in candidate_models and ("flash" in m or "pro" in m):
+            candidate_models.append(m)
+
+    # Fallback to defaults if list was empty
+    if not candidate_models:
+        candidate_models = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"]
+
+    print(f"[Solver] Candidate model order to try: {candidate_models}")
 
     response = None
     last_err = None
