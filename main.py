@@ -119,7 +119,18 @@ def main():
                 compare_pr_url=compare_pr_url
             )
 
-            print("\n✅ Run completed successfully. Check your email to review and open the PR!")
+            # Write GitHub Actions Job Summary (visible right on the run page!)
+            step_summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
+            if step_summary_path:
+                with open(step_summary_path, "a", encoding="utf-8") as f:
+                    f.write(f"## 🎯 Contribution Ready for Review!\n\n")
+                    f.write(f"- **Target Repo**: [{repo.full_name}](https://github.com/{repo.full_name})\n")
+                    f.write(f"- **Issue**: [{issue.title}]({issue.html_url})\n")
+                    f.write(f"- **Fork Branch**: [View Branch]({fork_branch_url})\n\n")
+                    f.write(f"### [👉 Click here to Review & Create Pull Request]({compare_pr_url})\n\n")
+                    f.write(f"<details><summary><b>View Diff Snippet</b></summary>\n\n```diff\n{diff_snippet}\n```\n</details>\n")
+
+            print("\n✅ Run completed successfully. Check your email or GitHub Summary to review and open the PR!")
 
     except Exception as e:
         print(f"\n❌ UNHANDLED EXCEPTION OCCURRED: {e}")

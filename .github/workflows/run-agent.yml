@@ -49,3 +49,10 @@ jobs:
           SEARCH_LANGUAGE: "python"
         run: |
           python main.py
+
+      - name: Publish Step Summary
+        if: always()
+        run: |
+          if [ -f "$GITHUB_STEP_SUMMARY" ]; then
+            echo "Summary file ready"
+          fi
